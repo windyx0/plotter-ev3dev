@@ -1,0 +1,1 @@
+pip install -r computer_side/requirements.txt

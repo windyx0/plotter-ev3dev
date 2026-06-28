@@ -22,6 +22,10 @@ Plott3r — это аппаратно-программный комплекс д
 
 **2. Запустите скрипт установки для вашей ОС:**
 
+- **Для Windows:**
+  ```bat
+  install\install_windows.bat
+  ```
 - **Для Linux (Ubuntu, Debian и т.д.):**
   ```bash
   bash install/install_linux.sh
@@ -42,6 +46,7 @@ Plott3r — это аппаратно-программный комплекс д
 
 ### Шаг 1. Запуск сервера
 После установки вы можете запустить веб-интерфейс одним из стартовых скриптов:
+- На Windows: `start_windows.bat`
 - На Linux: `bash start_linux.sh`
 - На macOS: `bash start_macos.sh`
 - На Termux: `bash start_termux.sh`

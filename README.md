@@ -22,6 +22,10 @@ Open the terminal in the project folder (`plott3r_project`).
 
 **2. Run the installation script for your OS:**
 
+- **For Windows:**
+  ```bat
+  install\install_windows.bat
+  ```
 - **For Linux (Ubuntu, Debian, etc.):**
   ```bash
   bash install/install_linux.sh
@@ -42,6 +46,7 @@ Open the terminal in the project folder (`plott3r_project`).
 
 ### Step 1. Start the Server
 After installation, you can launch the web interface using one of the startup scripts:
+- On Windows: `start_windows.bat`
 - On Linux: `bash start_linux.sh`
 - On macOS: `bash start_macos.sh`
 - On Termux: `bash start_termux.sh`

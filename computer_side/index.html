@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plott3r Control</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-0: #041226;
+      --bg-1: #0a1d35;
+      --card: rgba(13, 28, 51, 0.58);
+      --card-border: rgba(153, 194, 255, 0.2);
+      --text-0: #e8f1ff;
+      --text-1: #9db4d6;
+      --accent: #2f7eff;
+      --accent-2: #2bc8d6;
+      --ok: #28c76f;
+      --danger: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-0);
+      font-family: "Segoe UI", "SF Pro Text", "Inter", sans-serif;
+      background:
+        radial-gradient(900px 700px at 8% -10%, rgba(43, 200, 214, 0.25), transparent 55%),
+        radial-gradient(1000px 800px at 90% -20%, rgba(47, 126, 255, 0.28), transparent 55%),
+        linear-gradient(145deg, var(--bg-0), var(--bg-1));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.08), transparent 30%),
+                  radial-gradient(circle at 70% 70%, rgba(255,255,255,0.05), transparent 28%);
+      filter: blur(2px);
+      opacity: 0.65;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 2;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    .glass {
+      background: linear-gradient(160deg, rgba(25, 44, 74, 0.72), var(--card));
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 45px rgba(2, 8, 18, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+      animation: reveal-up 0.7s cubic-bezier(.22, .61, .36, 1) both;
+    }
+
+    .glass:hover {
+      transform: translateY(-2px);
+      border-color: rgba(176, 218, 255, 0.36);
+      box-shadow: 0 26px 50px rgba(2, 8, 18, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .header-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      font-size: clamp(2rem, 4vw, 2.65rem);
+      font-weight: 760;
+      letter-spacing: 0.02em;
+      margin: 0;
+      text-shadow: 0 10px 30px rgba(5, 10, 20, 0.5);
+    }
+
+    .brand span {
+      background: linear-gradient(90deg, #fff, #a8d1ff 38%, #82fff8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .segmented {
+      position: relative;
+      display: inline-grid;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(15, 33, 56, 0.72);
+      border: 1px solid rgba(163, 206, 255, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+    }
+
+    .segmented button,
+    .segmented label {
+      position: relative;
+      z-index: 3;
+      border: 0;
+      color: #d2e6ff;
+      background: transparent;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.26s ease, transform 0.24s ease;
+      user-select: none;
+    }
+
+    .segmented button:hover,
+    .segmented label:hover {
+      transform: translateY(-1px);
+      color: #eff8ff;
+    }
+
+    .seg-glider {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      height: calc(100% - 10px);
+      border-radius: 999px;
+      background:
+        radial-gradient(120% 160% at 20% 20%, rgba(255, 255, 255, 0.34), transparent 36%),
+        linear-gradient(125deg, rgba(47, 126, 255, 0.96), rgba(43, 200, 214, 0.94));
+      box-shadow: 0 10px 24px rgba(47, 126, 255, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transition: transform 0.44s cubic-bezier(.2, .8, .2, 1), width 0.44s cubic-bezier(.2, .8, .2, 1);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .lang-wrap {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lang-btn.active {
+      color: #ffffff;
+      text-shadow: 0 1px 6px rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-strip {
+      margin-bottom: 20px;
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-0);
+      padding: 9px 16px;
+      border-radius: 12px;
+      background: rgba(46, 83, 128, 0.45);
+      border: 1px solid rgba(175, 216, 255, 0.18);
+      font-weight: 600;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-link:hover {
+      transform: translateY(-2px);
+      background: rgba(68, 114, 168, 0.5);
+      box-shadow: 0 10px 24px rgba(34, 95, 155, 0.28);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .panel-left { animation-delay: 0.08s; }
+    .panel-right { animation-delay: 0.16s; }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #dcecff;
+    }
+
+    label.block-label {
+      display: block;
+      font-weight: 640;
+      margin-bottom: 8px;
+      color: #d2e4ff;
+    }
+
+    .muted { color: var(--text-1); }
+
+    .file-input {
+      width: 100%;
+      color: var(--text-1);
+    }
+
+    .file-input-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .file-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+    }
+
+    .file-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      color: white;
+      font-weight: 700;
+      background: linear-gradient(120deg, #2f7eff, #2bc8d6);
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+
+    .file-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .file-name {
+      color: #a8bfde;
+      font-weight: 520;
+      word-break: break-all;
+    }
+
+    .file-input::file-selector-button {
+      border: 0;
+      margin-right: 10px;
+      border-radius: 12px;
+      padding: 9px 14px;
+      cursor: pointer;
+      color: white;
+      font-weight: 620;
+      background: linear-gradient(120deg, #2f7eff, #2bc8d6);
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      border-radius: 16px;
+    }
+
+    .mode-grid input { display: none; }
+
+    .mode-grid label {
+      padding: 11px 10px;
+      border-radius: 12px;
+      color: #d1e4ff;
+      font-size: 1.02rem;
+    }
+
+    .mode-grid input:checked + label {
+      color: #ffffff;
+      text-shadow: 0 1px 8px rgba(255, 255, 255, 0.22);
+    }
+
+    .control-group { margin-top: 14px; }
+
+    .check-row {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #d8e9ff;
+      font-weight: 620;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2fb2ff;
+      cursor: pointer;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #2fb2ff;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: 0;
+      margin-top: 14px;
+      border-radius: 13px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 1.02rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow: 0 14px 26px rgba(47, 126, 255, 0.34);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      border: 1px solid rgba(143, 193, 244, 0.45);
+      margin-top: 10px;
+      border-radius: 13px;
+      padding: 11px 14px;
+      color: #d9ebff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(38, 68, 104, 0.45);
+      transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .tab-head {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(168, 207, 245, 0.24);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      border: 0;
+      background: transparent;
+      color: #a9c5ea;
+      cursor: pointer;
+      padding: 0 0 8px;
+      font-size: 1.16rem;
+      font-weight: 520;
+      border-bottom: 2px solid transparent;
+      transition: color 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+    }
+
+    .tab-btn.active {
+      color: #ecf5ff;
+      border-color: #62c8ff;
+    }
+
+    .tab-btn:hover {
+      color: #dff0ff;
+      transform: translateY(-1px);
+    }
+
+    .tab-content {
+      display: none;
+      opacity: 0;
+      transform: translateY(6px) scale(0.995);
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: tab-in 0.32s ease both;
+    }
+
+    .preview-box {
+      height: 420px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(74, 97, 130, 0.75), rgba(60, 82, 112, 0.62));
+      border: 1px solid rgba(176, 211, 245, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b6cce7;
+      text-align: center;
+      padding: 18px;
+    }
+
+    .preview-img {
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 14px;
+      border: 1px solid rgba(176, 211, 245, 0.2);
+    }
+
+    .manual-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .tool-btn {
+      border: 1px solid rgba(143, 193, 244, 0.36);
+      border-radius: 12px;
+      padding: 9px 13px;
+      color: #d9ebff;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(38, 68, 104, 0.45);
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .tool-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .manual-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      margin-top: 12px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(176, 211, 245, 0.24);
+      background: rgba(5, 13, 25, 0.58);
+      touch-action: none;
+    }
+
+    .manual-stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #manual-image-canvas {
+      opacity: 0.45;
+    }
+
+    #manual-draw-canvas {
+      cursor: crosshair;
+    }
+
+    .gcode-box {
+      height: 420px;
+      overflow: auto;
+      border-radius: 14px;
+      background: rgba(5, 13, 25, 0.8);
+      border: 1px solid rgba(154, 193, 234, 0.18);
+      padding: 13px;
+      font-size: 12px;
+      color: #d6e8ff;
+      white-space: pre;
+    }
+
+    .send-wrap {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .send-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .ip-input {
+      width: 100%;
+      border: 1px solid rgba(174, 212, 250, 0.24);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(54, 80, 111, 0.56);
+      color: #eaf4ff;
+      outline: none;
+    }
+
+    .ip-input:focus {
+      border-color: rgba(116, 199, 255, 0.8);
+      box-shadow: 0 0 0 3px rgba(89, 175, 238, 0.2);
+    }
+
+    .send-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 700;
+      color: #f0f6ff;
+      background: linear-gradient(120deg, #2f7eff, #2bc8d6);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .send-btn:disabled {
+      background: rgba(107, 131, 163, 0.55);
+      color: #bfd0e6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .send-btn:not(:disabled):hover { transform: translateY(-1px); }
+    .send-btn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(43, 200, 214, 0.26);
+    }
+
+    .status-pill {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--text-1);
+      min-height: 22px;
+    }
+
+    .status-pill.ok { color: var(--ok); }
+    .status-pill.error { color: var(--danger); }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: rgba(4, 12, 24, 0.52);
+      backdrop-filter: blur(6px);
+    }
+
+    .loading-card {
+      padding: 18px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(155, 195, 234, 0.25);
+      background: rgba(12, 27, 48, 0.78);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 650;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(199, 223, 252, 0.26);
+      border-top-color: #7ed9ff;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes reveal-up {
+      0% { opacity: 0; transform: translateY(16px) scale(0.985); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes tab-in {
+      0% { opacity: 0; transform: translateY(7px) scale(0.995); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .send-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="header-row">
+      <h1 class="brand" data-i18n="title"><span>Plott3r PC Control</span></h1>
+      <div id="lang-switch" class="segmented lang-wrap">
+        <div class="seg-glider" aria-hidden="true"></div>
+        <button id="lang-ru" class="lang-btn">RU</button>
+        <button id="lang-en" class="lang-btn">EN</button>
+      </div>
+    </div>
+
+    <div class="glass nav-strip">
+      <a href="#generator" class="nav-link" data-i18n="menu_generator">Генератор</a>
+      <a href="#send-panel" class="nav-link" data-i18n="menu_send">Отправка на EV3</a>
+    </div>
+
+    <div id="generator" class="layout">
+      <section class="glass panel panel-left">
+        <form id="upload-form">
+          <div>
+            <label class="block-label" data-i18n="step_file">1. Файл</label>
+            <div class="file-picker">
+              <button type="button" id="image_file_btn" class="file-btn" data-i18n="pick_file">Выберите файл</button>
+              <span id="image_file_name" class="file-name">Файл не выбран</span>
+              <input id="image_file" name="image_file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,.gcode,.nc,.txt" class="file-input-hidden">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="block-label" data-i18n="step_mode">2. Режим</label>
+            <div id="mode-switch" class="segmented mode-grid">
+              <div class="seg-glider" aria-hidden="true"></div>
+              <input type="radio" id="mode-edge" name="mode" value="edge" checked onchange="toggleSettings()">
+              <label for="mode-edge" data-i18n="mode_edge">Линии</label>
+
+
+
+              <input type="radio" id="mode-manual" name="mode" value="manual" onchange="toggleSettings()">
+              <label for="mode-manual" data-i18n="mode_manual">Ручная</label>
+            </div>
+          </div>
+
+          <div id="settings-edge" class="control-group">
+            <div class="slider-row">
+              <span data-i18n="canny_low">Canny Low</span>
+              <strong id="canny_low_val">50</strong>
+            </div>
+            <input type="range" id="canny_low" name="canny_low" min="10" max="200" value="50" oninput="setVal('canny_low_val', this.value)">
+
+            <div class="slider-row" style="margin-top:12px;">
+              <span data-i18n="canny_high">Canny High</span>
+              <strong id="canny_high_val">150</strong>
+            </div>
+            <input type="range" id="canny_high" name="canny_high" min="50" max="400" value="150" oninput="setVal('canny_high_val', this.value)">
+          </div>
+
+          <div id="settings-hatch" class="control-group" style="display:none;">
+            <div class="slider-row">
+              <span data-i18n="spacing">Шаг линий</span>
+              <strong><span id="spacing_px_val">3</span> px</strong>
+            </div>
+            <input type="range" id="spacing_px" name="spacing_px" min="1" max="10" value="3" oninput="setVal('spacing_px_val', this.value)">
+          </div>
+
+          <div id="settings-vector" class="control-group muted" style="display:none;" data-i18n="vector_no_extra">Доп. настройки не требуются.</div>
+
+          <div id="settings-manual" class="control-group" style="display:none;">
+            <label class="block-label" data-i18n="manual_draw">Ручная обводка</label>
+            <div class="manual-stage">
+              <canvas id="manual-image-canvas" width="900" height="900"></canvas>
+              <canvas id="manual-draw-canvas" width="900" height="900"></canvas>
+            </div>
+            <div class="manual-tools">
+              <button type="button" id="manual-undo-btn" class="tool-btn" data-i18n="manual_undo">Назад</button>
+              <button type="button" id="manual-clear-btn" class="tool-btn" data-i18n="manual_clear">Очистить</button>
+            </div>
+            <div class="control-group">
+              <div class="slider-row">
+                <span data-i18n="manual_arc_bulge">Выпуклость дуги</span>
+                <strong><span id="manual_arc_bulge_val">35</span>%</strong>
+              </div>
+              <input type="range" id="manual_arc_bulge" min="-100" max="100" value="35" oninput="setVal('manual_arc_bulge_val', this.value); updateManualLastArc()">
+            </div>
+            <div class="control-group">
+              <div class="slider-row">
+                <span data-i18n="manual_arc_steps">Точность дуги</span>
+                <strong id="manual_arc_steps_val">32</strong>
+              </div>
+              <input type="range" id="manual_arc_steps" min="8" max="96" value="32" oninput="setVal('manual_arc_steps_val', this.value); renderManualCanvases()">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="resolution_x">Разрешение X</span>
+              <strong id="resolution_x_val">900</strong>
+            </div>
+            <input type="range" id="resolution_x" name="resolution_x" min="200" max="1800" value="900" oninput="setVal('resolution_x_val', this.value); syncResolutionFrom('x')">
+          </div>
+
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="resolution_y">Разрешение Y</span>
+              <strong id="resolution_y_val">900</strong>
+            </div>
+            <input type="range" id="resolution_y" name="resolution_y" min="200" max="1800" value="900" oninput="setVal('resolution_y_val', this.value); syncResolutionFrom('y')">
+          </div>
+
+          <label class="check-row" for="link_resolution">
+            <input type="checkbox" id="link_resolution" name="link_resolution" checked>
+            <span data-i18n="link_resolution">Авто X/Y: держать пропорции</span>
+          </label>
+
+          <input type="hidden" id="width_mm" name="width_mm" value="900">
+
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="offset_x">Смещение X</span>
+              <strong><span id="offset_x_mm_val">0</span> <span data-i18n="unit_mm">мм</span></strong>
+            </div>
+            <input type="range" id="offset_x_mm" name="offset_x_mm" min="-100" max="100" value="0" oninput="setVal('offset_x_mm_val', this.value)">
+          </div>
+
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="offset_y">Смещение Y</span>
+              <strong><span id="offset_y_mm_val">0</span> <span data-i18n="unit_mm">мм</span></strong>
+            </div>
+            <input type="range" id="offset_y_mm" name="offset_y_mm" min="-100" max="100" value="0" oninput="setVal('offset_y_mm_val', this.value)">
+          </div>
+
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="arc_aggr">Агрессивность дуг</span>
+              <strong><span id="arc_aggressiveness_val">40</span>%</strong>
+            </div>
+            <input type="range" id="arc_aggressiveness" name="arc_aggressiveness" min="0" max="100" value="40" oninput="setVal('arc_aggressiveness_val', this.value)">
+          </div>
+
+          <label class="check-row" for="auto_optimize">
+            <input type="checkbox" id="auto_optimize" name="auto_optimize" checked>
+            <span data-i18n="auto_opt">Автооптимизация: параметры, бумага и G-code</span>
+          </label>
+          <div class="control-group">
+            <div class="slider-row">
+              <span data-i18n="target_lines">Цель строк G-code</span>
+              <strong id="target_lines_val">Не ограничено</strong>
+            </div>
+            <input type="range" id="target_lines" name="target_lines" min="100" max="35000" step="50" value="35000" oninput="setVal('target_lines_val', this.value)">
+          </div>
+          <label class="check-row" for="prioritize_arcs">
+            <input type="checkbox" id="prioritize_arcs" name="prioritize_arcs" checked>
+            <span data-i18n="arc_priority">Приоритет дуг (G2/G3)</span>
+          </label>
+
+          <button type="submit" class="btn-primary" data-i18n="btn_process">Обработать</button>
+          <button type="button" id="download-gcode-btn" class="btn-secondary" data-i18n="btn_download_gcode" disabled>Скачать G-code</button>
+        </form>
+      </section>
+
+      <section class="glass panel panel-right">
+        <div class="tab-head">
+          <button id="tab-btn-preview" class="tab-btn active" data-i18n="preview">Preview</button>
+          <button id="tab-btn-gcode" class="tab-btn">G-code (<span id="gcode-lines">0</span>)</button>
+        </div>
+
+        <div id="tab-content-preview" class="tab-content active">
+          <div id="preview-placeholder" class="preview-box" data-i18n="preview_placeholder">Загрузите файл и нажмите Обработать</div>
+          <img id="preview-image" class="preview-img" style="display:none;" alt="preview">
+        </div>
+
+        <div id="tab-content-gcode" class="tab-content">
+          <pre id="gcode-preview" class="gcode-box" data-i18n="gcode_placeholder">G-code будет здесь...</pre>
+        </div>
+      </section>
+    </div>
+
+    <section id="send-panel" class="glass send-wrap">
+      <h2 class="section-title" data-i18n="send_title">Отправка на EV3</h2>
+      <div class="send-row">
+        <input id="ev3-ip" type="text" class="ip-input" placeholder="IP EV3, например 192.168.1.100">
+        <button id="send-button" class="send-btn" disabled data-i18n="btn_send">Отправить</button>
+      </div>
+      <div id="status-pill" class="status-pill"></div>
+    </section>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-card glass">
+      <div class="spinner"></div>
+      <span id="loading-text">Processing...</span>
+    </div>
+  </div>
+
+  <script>
+    let GCODE_CACHE = [];
+    let currentLang = 'ru';
+    let CURRENT_IMAGE_ASPECT = 1.0;
+    let MANUAL_IMAGE = null;
+    let MANUAL_PATHS = [];
+    let MANUAL_CURRENT_PATH = null;
+
+    const I18N = {
+      ru: {
+        title: 'Plott3r PC Control',
+        menu_generator: 'Генератор',
+        menu_send: 'Отправка на EV3',
+        step_file: '1. Файл',
+        pick_file: 'Выберите файл',
+        file_hint: 'Можно выбрать изображение или файл G-code (.gcode/.nc/.txt)',
+        no_file_selected: 'Файл не выбран',
+        step_mode: '2. Режим',
+        mode_edge: 'Линии',
+        mode_vector: 'Контуры',
+        mode_hatch: 'Штриховка',
+        mode_manual: 'Ручная',
+        canny_low: 'Canny Low',
+        canny_high: 'Canny High',
+        spacing: 'Шаг линий',
+        vector_no_extra: 'Доп. настройки не требуются.',
+        manual_draw: 'Ручная обводка',
+        manual_undo: 'Назад',
+        manual_clear: 'Очистить',
+        manual_arc_bulge: 'Выпуклость дуги',
+        manual_arc_steps: 'Точность дуги',
+        alert_manual_empty: 'Нарисуйте хотя бы один контур',
+        resolution_x: 'Разрешение X',
+        resolution_y: 'Разрешение Y',
+        link_resolution: 'Авто X/Y: держать пропорции',
+        width: 'Ширина рисунка',
+        offset_x: 'Смещение X',
+        offset_y: 'Смещение Y',
+        arc_aggr: 'Агрессивность дуг',
+        auto_opt: 'Автооптимизация: параметры, бумага и G-code',
+        target_lines: 'Цель строк G-code',
+        target_lines_unlimited: 'Не ограничено',
+        arc_priority: 'Приоритет дуг (G2/G3)',
+        unit_mm: 'мм',
+        btn_process: 'Обработать',
+        btn_download_gcode: 'Скачать G-code',
+        preview: 'Preview',
+        preview_placeholder: 'Загрузите файл и нажмите Обработать',
+        gcode_placeholder: 'G-code будет здесь...',
+        send_title: 'Отправка на EV3',
+        btn_send: 'Отправить',
+        alert_process: 'Ошибка обработки',
+        alert_import_error: 'Ошибка импорта G-code',
+        alert_download_first: 'Сначала сгенерируйте или импортируйте G-code',
+        alert_enter_ip: 'Введите IP EV3',
+        alert_process_first: 'Сначала обработайте изображение',
+        alert_send_error: 'Ошибка отправки',
+        alert_send_ok: 'Отправка запущена',
+        ip_placeholder: 'IP EV3, например 192.168.1.100',
+        status_ready: 'Готово к генерации G-code',
+        status_processing: 'Обрабатываю изображение...',
+        status_sending: 'Отправляю на EV3...',
+        status_ok: 'Успешно',
+        status_imported: 'G-code импортирован',
+        status_auto: 'авто',
+        status_budget: 'ужато',
+        status_cuda: 'cuda',
+        loading_process: 'Обработка...',
+        loading_send: 'Отправка...'
+      },
+      en: {
+        title: 'Plott3r PC Control',
+        menu_generator: 'Generator',
+        menu_send: 'Send to EV3',
+        step_file: '1. File',
+        pick_file: 'Choose file',
+        file_hint: 'You can choose an image or a G-code file (.gcode/.nc/.txt)',
+        no_file_selected: 'No file selected',
+        step_mode: '2. Mode',
+        mode_edge: 'Lines',
+        mode_vector: 'Contours',
+        mode_hatch: 'Hatching',
+        mode_manual: 'Manual',
+        canny_low: 'Canny Low',
+        canny_high: 'Canny High',
+        spacing: 'Line spacing',
+        vector_no_extra: 'No extra settings needed.',
+        manual_draw: 'Manual tracing',
+        manual_undo: 'Undo',
+        manual_clear: 'Clear',
+        manual_arc_bulge: 'Arc bulge',
+        manual_arc_steps: 'Arc precision',
+        alert_manual_empty: 'Draw at least one contour',
+        resolution_x: 'Resolution X',
+        resolution_y: 'Resolution Y',
+        link_resolution: 'Auto X/Y: keep aspect ratio',
+        width: 'Drawing width',
+        offset_x: 'X offset',
+        offset_y: 'Y offset',
+        arc_aggr: 'Arc aggressiveness',
+        auto_opt: 'Auto optimize: parameters, paper fit and G-code',
+        target_lines: 'Target G-code lines',
+        target_lines_unlimited: 'Unlimited',
+        arc_priority: 'Arc priority (G2/G3)',
+        unit_mm: 'mm',
+        btn_process: 'Process',
+        btn_download_gcode: 'Download G-code',
+        preview: 'Preview',
+        preview_placeholder: 'Upload a file and click Process',
+        gcode_placeholder: 'G-code will appear here...',
+        send_title: 'Send to EV3',
+        btn_send: 'Send',
+        alert_process: 'Processing error',
+        alert_import_error: 'G-code import error',
+        alert_download_first: 'Generate or import G-code first',
+        alert_enter_ip: 'Enter EV3 IP',
+        alert_process_first: 'Process an image first',
+        alert_send_error: 'Send error',
+        alert_send_ok: 'Send started',
+        ip_placeholder: 'EV3 IP, e.g. 192.168.1.100',
+        status_ready: 'Ready to generate G-code',
+        status_processing: 'Processing image...',
+        status_sending: 'Sending to EV3...',
+        status_ok: 'Success',
+        status_imported: 'G-code imported',
+        status_auto: 'auto',
+        status_budget: 'reduced',
+        status_cuda: 'cuda',
+        loading_process: 'Processing...',
+        loading_send: 'Sending...'
+      }
+    };
+
+    function setVal(id, v) {
+      if (id === 'target_lines_val' && parseInt(v) === 35000) {
+        document.getElementById(id).textContent = I18N[currentLang].target_lines_unlimited;
+      } else {
+        document.getElementById(id).textContent = v;
+      }
+    }
+
+    function clampValue(v, minV, maxV) {
+      return Math.max(minV, Math.min(maxV, v));
+    }
+
+    function setResolutionValue(axis, value) {
+      const id = axis === 'x' ? 'resolution_x' : 'resolution_y';
+      const valId = axis === 'x' ? 'resolution_x_val' : 'resolution_y_val';
+      const input = document.getElementById(id);
+      const clamped = clampValue(Math.round(value), Number(input.min), Number(input.max));
+      input.value = String(clamped);
+      setVal(valId, clamped);
+      updateManualCanvasGeometry();
+      return clamped;
+    }
+
+    function syncResolutionFrom(changedAxis) {
+      const lock = document.getElementById('link_resolution').checked;
+      if (!lock) return;
+      const xInput = document.getElementById('resolution_x');
+      const yInput = document.getElementById('resolution_y');
+      const x = Number(xInput.value);
+      const y = Number(yInput.value);
+      const aspect = Number.isFinite(CURRENT_IMAGE_ASPECT) && CURRENT_IMAGE_ASPECT > 0 ? CURRENT_IMAGE_ASPECT : 1.0;
+      if (changedAxis === 'x') {
+        setResolutionValue('y', x * aspect);
+      } else {
+        setResolutionValue('x', y / aspect);
+      }
+    }
+
+    function updateAspectFromImageFile(file) {
+      if (!file || isGcodeFilename(file.name)) return;
+      const blobUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > 0 && img.height > 0) {
+          CURRENT_IMAGE_ASPECT = img.height / img.width;
+          syncResolutionFrom('x');
+        }
+        URL.revokeObjectURL(blobUrl);
+      };
+      img.onerror = () => URL.revokeObjectURL(blobUrl);
+      img.src = blobUrl;
+    }
+
+    function updateManualImageFromFile(file) {
+      if (!file || isGcodeFilename(file.name) || !file.type.startsWith('image/')) {
+        MANUAL_IMAGE = null;
+        renderManualCanvases();
+        return;
+      }
+      const blobUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        MANUAL_IMAGE = img;
+        CURRENT_IMAGE_ASPECT = img.height / img.width;
+        syncResolutionFrom('x');
+        renderManualCanvases();
+        URL.revokeObjectURL(blobUrl);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(blobUrl);
+        MANUAL_IMAGE = null;
+        renderManualCanvases();
+      };
+      img.src = blobUrl;
+    }
+
+    function updateManualCanvasGeometry() {
+      const stage = document.querySelector('.manual-stage');
+      const imageCanvas = document.getElementById('manual-image-canvas');
+      const drawCanvas = document.getElementById('manual-draw-canvas');
+      if (!stage || !imageCanvas || !drawCanvas) return;
+      const w = Number(document.getElementById('resolution_x').value) || 900;
+      const h = Number(document.getElementById('resolution_y').value) || 900;
+      stage.style.aspectRatio = `${w} / ${h}`;
+      [imageCanvas, drawCanvas].forEach(canvas => {
+        canvas.width = w;
+        canvas.height = h;
+      });
+      renderManualCanvases();
+    }
+
+    function drawContainedImage(ctx, img, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      if (!img) return;
+      const scale = Math.min(w / img.width, h / img.height);
+      const iw = img.width * scale;
+      const ih = img.height * scale;
+      const x = (w - iw) / 2;
+      const y = (h - ih) / 2;
+      ctx.drawImage(img, x, y, iw, ih);
+    }
+
+    function renderManualCanvases() {
+      const imageCanvas = document.getElementById('manual-image-canvas');
+      const drawCanvas = document.getElementById('manual-draw-canvas');
+      if (!imageCanvas || !drawCanvas) return;
+      const imageCtx = imageCanvas.getContext('2d');
+      const drawCtx = drawCanvas.getContext('2d');
+      drawContainedImage(imageCtx, MANUAL_IMAGE, imageCanvas.width, imageCanvas.height);
+
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      drawCtx.lineWidth = Math.max(2, Math.round(drawCanvas.width / 360));
+      drawCtx.lineCap = 'round';
+      drawCtx.lineJoin = 'round';
+      drawCtx.strokeStyle = '#ffffff';
+      drawCtx.shadowColor = 'rgba(43, 200, 214, 0.75)';
+      drawCtx.shadowBlur = 4;
+      const paths = [...MANUAL_PATHS, MANUAL_CURRENT_PATH].filter(Boolean);
+      paths.forEach(path => {
+        path.segments.forEach(seg => {
+          drawCtx.beginPath();
+          drawCtx.moveTo(seg.from.x * drawCanvas.width, seg.from.y * drawCanvas.height);
+          if (seg.type === 'arc') {
+            const samples = sampleManualArc(seg.from, seg.to, seg.bulge, Number(document.getElementById('manual_arc_steps').value) || 32);
+            samples.slice(1).forEach(p => drawCtx.lineTo(p.x * drawCanvas.width, p.y * drawCanvas.height));
+          } else {
+            drawCtx.lineTo(seg.to.x * drawCanvas.width, seg.to.y * drawCanvas.height);
+          }
+          drawCtx.stroke();
+        });
+
+        drawCtx.shadowBlur = 0;
+        drawCtx.fillStyle = '#2bc8d6';
+        manualPathPoints(path).forEach(p => {
+          drawCtx.beginPath();
+          drawCtx.arc(p.x * drawCanvas.width, p.y * drawCanvas.height, 4, 0, Math.PI * 2);
+          drawCtx.fill();
+        });
+        drawCtx.shadowBlur = 4;
+      });
+    }
+
+    function manualPointerPoint(evt) {
+      const canvas = document.getElementById('manual-draw-canvas');
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: clampValue((evt.clientX - rect.left) / rect.width, 0, 1),
+        y: clampValue((evt.clientY - rect.top) / rect.height, 0, 1)
+      };
+    }
+
+    function manualDistanceMm(a, b, widthMm, heightMm) {
+      const dx = (a.x - b.x) * widthMm;
+      const dy = (a.y - b.y) * heightMm;
+      return Math.hypot(dx, dy);
+    }
+
+    function manualPathPoints(path) {
+      if (!path) return [];
+      const pts = [path.start];
+      path.segments.forEach(seg => pts.push(seg.to));
+      return pts;
+    }
+
+    function manualPathLastPoint(path) {
+      if (!path) return null;
+      return path.segments.length ? path.segments[path.segments.length - 1].to : path.start;
+    }
+
+    function sampleManualArc(from, to, bulgePct, steps) {
+      const chord = Math.hypot(to.x - from.x, to.y - from.y);
+      const bulge = clampValue(Number(bulgePct) || 0, -100, 100) / 100;
+      if (chord < 1e-6 || Math.abs(bulge) < 0.01) return [from, to];
+
+      const mx = (from.x + to.x) / 2;
+      const my = (from.y + to.y) / 2;
+      const nx = -(to.y - from.y) / chord;
+      const ny = (to.x - from.x) / chord;
+      const sagitta = chord * 0.5 * bulge;
+      const radius = (chord * chord) / (8 * Math.abs(sagitta)) + Math.abs(sagitta) / 2;
+      const centerOffset = Math.sign(sagitta) * (radius - Math.abs(sagitta));
+      const cx = mx + nx * centerOffset;
+      const cy = my + ny * centerOffset;
+      const a0 = Math.atan2(from.y - cy, from.x - cx);
+      const a1 = Math.atan2(to.y - cy, to.x - cx);
+      let sweep = a1 - a0;
+      if (bulge > 0 && sweep < 0) sweep += Math.PI * 2;
+      if (bulge < 0 && sweep > 0) sweep -= Math.PI * 2;
+
+      const count = Math.max(4, Math.round(steps || 32));
+      const pts = [];
+      for (let i = 0; i <= count; i += 1) {
+        const a = a0 + sweep * (i / count);
+        pts.push({ x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius });
+      }
+      return pts;
+    }
+
+    function manualArcCenterMm(from, to, bulgePct, widthMm, heightMm) {
+      const a = { x: from.x * widthMm, y: from.y * heightMm };
+      const b = { x: to.x * widthMm, y: to.y * heightMm };
+      const chord = Math.hypot(b.x - a.x, b.y - a.y);
+      const bulge = clampValue(Number(bulgePct) || 0, -100, 100) / 100;
+      if (chord < 1e-6 || Math.abs(bulge) < 0.01) return null;
+
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      const nx = -(b.y - a.y) / chord;
+      const ny = (b.x - a.x) / chord;
+      const sagitta = chord * 0.5 * bulge;
+      const radius = (chord * chord) / (8 * Math.abs(sagitta)) + Math.abs(sagitta) / 2;
+      const centerOffset = Math.sign(sagitta) * (radius - Math.abs(sagitta));
+      return { x: mx + nx * centerOffset, y: my + ny * centerOffset, clockwise: bulge < 0 };
+    }
+
+    function addManualPoint(point, asArc, invertArc) {
+      if (!MANUAL_CURRENT_PATH) {
+        MANUAL_CURRENT_PATH = { start: point, segments: [] };
+        renderManualCanvases();
+        return;
+      }
+      const from = manualPathLastPoint(MANUAL_CURRENT_PATH);
+      const baseBulge = Number(document.getElementById('manual_arc_bulge').value) || 35;
+      const bulge = asArc ? (invertArc ? -Math.abs(baseBulge) : baseBulge) : 0;
+      MANUAL_CURRENT_PATH.segments.push({
+        type: asArc ? 'arc' : 'line',
+        from,
+        to: point,
+        bulge
+      });
+      renderManualCanvases();
+    }
+
+    function finishManualPath() {
+      if (MANUAL_CURRENT_PATH && MANUAL_CURRENT_PATH.segments.length > 0) {
+        MANUAL_PATHS.push(MANUAL_CURRENT_PATH);
+      }
+      MANUAL_CURRENT_PATH = null;
+      renderManualCanvases();
+    }
+
+    function reverseManualPath(path) {
+      const points = manualPathPoints(path);
+      const reversedSegments = [];
+      for (let i = path.segments.length - 1; i >= 0; i -= 1) {
+        const seg = path.segments[i];
+        reversedSegments.push({
+          type: seg.type,
+          from: seg.to,
+          to: seg.from,
+          bulge: seg.type === 'arc' ? -seg.bulge : 0
+        });
+      }
+      return { start: points[points.length - 1], segments: reversedSegments };
+    }
+
+    function sortManualPathsForTravel(paths) {
+      const remaining = paths.slice();
+      const ordered = [];
+      let cursor = { x: 0, y: 0 };
+      while (remaining.length) {
+        let bestIdx = 0;
+        let bestReverse = false;
+        let bestDist = Infinity;
+        remaining.forEach((path, idx) => {
+          const start = path.start;
+          const end = manualPathLastPoint(path);
+          const ds = Math.hypot(start.x - cursor.x, start.y - cursor.y);
+          const de = Math.hypot(end.x - cursor.x, end.y - cursor.y);
+          if (ds < bestDist) {
+            bestDist = ds;
+            bestIdx = idx;
+            bestReverse = false;
+          }
+          if (de < bestDist) {
+            bestDist = de;
+            bestIdx = idx;
+            bestReverse = true;
+          }
+        });
+        const selected = remaining.splice(bestIdx, 1)[0];
+        const path = bestReverse ? reverseManualPath(selected) : selected;
+        ordered.push(path);
+        cursor = manualPathLastPoint(path);
+      }
+      return ordered;
+    }
+
+    function undoManualEdit() {
+      if (MANUAL_CURRENT_PATH && MANUAL_CURRENT_PATH.segments.length) {
+        MANUAL_CURRENT_PATH.segments.pop();
+      } else if (MANUAL_CURRENT_PATH) {
+        MANUAL_CURRENT_PATH = null;
+      } else {
+        const path = MANUAL_PATHS.pop();
+        if (path) MANUAL_CURRENT_PATH = path;
+      }
+      renderManualCanvases();
+    }
+
+    function updateManualLastArc() {
+      const targetPath = MANUAL_CURRENT_PATH || MANUAL_PATHS[MANUAL_PATHS.length - 1];
+      if (!targetPath || !targetPath.segments.length) return;
+      const last = targetPath.segments[targetPath.segments.length - 1];
+      if (last.type !== 'arc') return;
+      last.bulge = Number(document.getElementById('manual_arc_bulge').value) || 0;
+      renderManualCanvases();
+    }
+
+    function buildManualGcode() {
+      const t = I18N[currentLang];
+      const widthMm = Number(document.getElementById('width_mm').value) || 900;
+      const resX = Number(document.getElementById('resolution_x').value) || 900;
+      const resY = Number(document.getElementById('resolution_y').value) || 900;
+      const heightMm = widthMm * (resY / resX);
+      const offX = Number(document.getElementById('offset_x_mm').value) || 0;
+      const offY = Number(document.getElementById('offset_y_mm').value) || 0;
+      const lines = ['G21', 'G90', 'G28'];
+
+      const paths = sortManualPathsForTravel(
+        [...MANUAL_PATHS, MANUAL_CURRENT_PATH].filter(path => path && path.segments.length > 0)
+      );
+
+      if (!paths.length) throw new Error(t.alert_manual_empty);
+
+      paths.forEach(path => {
+        const first = path.start;
+        lines.push(`G0 X${(first.x * widthMm + offX).toFixed(2)} Y${(first.y * heightMm + offY).toFixed(2)} F4000`);
+        lines.push('M300 S30');
+        path.segments.forEach(seg => {
+          const x = seg.to.x * widthMm + offX;
+          const y = seg.to.y * heightMm + offY;
+          if (seg.type === 'arc') {
+            const center = manualArcCenterMm(seg.from, seg.to, seg.bulge, widthMm, heightMm);
+            if (center) {
+              const startX = seg.from.x * widthMm;
+              const startY = seg.from.y * heightMm;
+              const code = center.clockwise ? 'G2' : 'G3';
+              lines.push(`${code} X${x.toFixed(2)} Y${y.toFixed(2)} I${(center.x - startX).toFixed(2)} J${(center.y - startY).toFixed(2)} F2500`);
+              return;
+            }
+          }
+          lines.push(`G1 X${x.toFixed(2)} Y${y.toFixed(2)} F2500`);
+        });
+        lines.push('M300 S50');
+      });
+      lines.push('G28');
+      return lines;
+    }
+
+    function isGcodeFilename(name) {
+      const lower = (name || '').toLowerCase();
+      return lower.endsWith('.gcode') || lower.endsWith('.nc') || lower.endsWith('.txt');
+    }
+
+    function parseGcodeText(text) {
+      const lines = [];
+      text.split(/\r?\n/).forEach((raw) => {
+        let line = raw.trim();
+        if (!line || line.startsWith(';')) return;
+        if (line.includes(';')) line = line.split(';')[0].trim();
+        if (line) lines.push(line);
+      });
+      return lines;
+    }
+
+    function updateActionsAvailability() {
+      const hasGcode = GCODE_CACHE.length > 0;
+      document.getElementById('send-button').disabled = !hasGcode;
+      document.getElementById('download-gcode-btn').disabled = !hasGcode;
+    }
+
+    function moveGlider(containerId, activeElement) {
+      const container = document.getElementById(containerId);
+      if (!container || !activeElement) return;
+      const glider = container.querySelector('.seg-glider');
+      if (!glider) return;
+      const c = container.getBoundingClientRect();
+      const a = activeElement.getBoundingClientRect();
+      let x = a.left - c.left;
+      if (containerId === 'lang-switch') {
+        if (activeElement.id === 'lang-ru') x -= 5;
+        if (activeElement.id === 'lang-en') x -= 6;
+      }
+      glider.style.width = `${Math.round(a.width)}px`;
+      glider.style.transform = `translateX(${Math.round(x)}px)`;
+    }
+
+    function refreshLanguageGlider() {
+      const activeLangBtn = document.querySelector('.lang-btn.active') || document.getElementById('lang-ru');
+      moveGlider('lang-switch', activeLangBtn);
+    }
+
+    function refreshModeGlider() {
+      const activeRadio = document.querySelector('input[name="mode"]:checked');
+      if (!activeRadio) return;
+      const activeLabel = document.querySelector(`label[for="${activeRadio.id}"]`);
+      moveGlider('mode-switch', activeLabel);
+    }
+
+    function setStatus(text, type = '') {
+      const el = document.getElementById('status-pill');
+      el.textContent = text;
+      el.className = `status-pill ${type}`.trim();
+    }
+
+    function showLoading(text) {
+      document.getElementById('loading-text').textContent = text;
+      document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading-overlay').style.display = 'none';
+    }
+
+    function applyLang(lang) {
+      currentLang = I18N[lang] ? lang : 'ru';
+      const t = I18N[currentLang];
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+
+      document.getElementById('ev3-ip').placeholder = t.ip_placeholder;
+      document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
+      document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+      localStorage.setItem('plott3r_lang', currentLang);
+      refreshLanguageGlider();
+      setVal('target_lines_val', document.getElementById('target_lines').value);
+      const fileInput = document.getElementById('image_file');
+      const fileName = document.getElementById('image_file_name');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        fileName.textContent = t.no_file_selected;
+      }
+
+      if (!document.getElementById('status-pill').textContent) {
+        setStatus(t.status_ready);
+      }
+    }
+
+    function detectDefaultLang() {
+      const saved = localStorage.getItem('plott3r_lang');
+      if (saved && I18N[saved]) return saved;
+      const nav = (navigator.language || 'ru').toLowerCase();
+      return nav.startsWith('ru') ? 'ru' : 'en';
+    }
+
+    function toggleSettings() {
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      document.getElementById('settings-edge').style.display = mode === 'edge' ? 'block' : 'none';
+      document.getElementById('settings-vector').style.display = mode === 'vector' ? 'block' : 'none';
+      document.getElementById('settings-hatch').style.display = mode === 'hatch' ? 'block' : 'none';
+      document.getElementById('settings-manual').style.display = mode === 'manual' ? 'block' : 'none';
+      refreshModeGlider();
+      updateManualCanvasGeometry();
+    }
+
+    function syncArcControls() {
+      const enabled = document.getElementById('prioritize_arcs').checked;
+      const slider = document.getElementById('arc_aggressiveness');
+      slider.disabled = !enabled;
+      slider.style.opacity = enabled ? '1' : '0.45';
+    }
+
+    const tabBtnPreview = document.getElementById('tab-btn-preview');
+    const tabBtnGcode = document.getElementById('tab-btn-gcode');
+    const tabContentPreview = document.getElementById('tab-content-preview');
+    const tabContentGcode = document.getElementById('tab-content-gcode');
+
+    tabBtnPreview.onclick = () => {
+      tabBtnPreview.classList.add('active');
+      tabBtnGcode.classList.remove('active');
+      tabContentPreview.classList.add('active');
+      tabContentGcode.classList.remove('active');
+    };
+
+    tabBtnGcode.onclick = () => {
+      tabBtnGcode.classList.add('active');
+      tabBtnPreview.classList.remove('active');
+      tabContentGcode.classList.add('active');
+      tabContentPreview.classList.remove('active');
+    };
+
+    document.getElementById('lang-ru').addEventListener('click', () => applyLang('ru'));
+    document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
+    document.getElementById('prioritize_arcs').addEventListener('change', syncArcControls);
+    document.getElementById('link_resolution').addEventListener('change', () => syncResolutionFrom('x'));
+    document.getElementById('image_file_btn').addEventListener('click', () => document.getElementById('image_file').click());
+    document.getElementById('image_file').addEventListener('change', (e) => {
+      const t = I18N[currentLang];
+      const fileName = document.getElementById('image_file_name');
+      if (e.target.files && e.target.files.length > 0) {
+        fileName.textContent = e.target.files[0].name;
+        updateAspectFromImageFile(e.target.files[0]);
+        updateManualImageFromFile(e.target.files[0]);
+      } else {
+        fileName.textContent = t.no_file_selected;
+        MANUAL_IMAGE = null;
+        renderManualCanvases();
+      }
+    });
+
+    document.getElementById('manual-draw-canvas').addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      finishManualPath();
+    });
+
+    document.getElementById('manual-draw-canvas').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (e.button === 2) {
+        finishManualPath();
+        return;
+      }
+      if (e.button !== 0) {
+        return;
+      }
+      addManualPoint(manualPointerPoint(e), e.ctrlKey, e.shiftKey);
+    });
+
+    document.getElementById('manual-undo-btn').addEventListener('click', () => {
+      undoManualEdit();
+    });
+    document.getElementById('manual-clear-btn').addEventListener('click', () => {
+      MANUAL_PATHS = [];
+      MANUAL_CURRENT_PATH = null;
+      renderManualCanvases();
+    });
+    document.addEventListener('keydown', (e) => {
+      const mode = document.querySelector('input[name="mode"]:checked')?.value;
+      if (mode !== 'manual') return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undoManualEdit();
+      }
+    });
+    window.addEventListener('resize', () => {
+      refreshLanguageGlider();
+      refreshModeGlider();
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const t = I18N[currentLang];
+      const fileInput = document.getElementById('image_file');
+      const selectedFile = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+      const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+
+      if (selectedMode === 'manual') {
+        try {
+          showLoading(t.loading_process);
+          GCODE_CACHE = buildManualGcode();
+          document.getElementById('gcode-preview').textContent = GCODE_CACHE.join('\n');
+          document.getElementById('gcode-lines').textContent = GCODE_CACHE.length;
+          const previewResponse = await fetch('/preview_gcode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commands: GCODE_CACHE })
+          });
+          const previewResult = await previewResponse.json();
+          if (previewResponse.ok && previewResult.preview_image) {
+            document.getElementById('preview-placeholder').style.display = 'none';
+            document.getElementById('preview-image').src = previewResult.preview_image;
+            document.getElementById('preview-image').style.display = 'block';
+          }
+          updateActionsAvailability();
+          setStatus(`${t.status_ok}: ${GCODE_CACHE.length} lines`, 'ok');
+          tabBtnPreview.onclick();
+          return;
+        } catch (err) {
+          setStatus(err.message || t.alert_process, 'error');
+          alert(err.message || t.alert_process);
+          return;
+        } finally {
+          hideLoading();
+        }
+      }
+
+      if (selectedFile && isGcodeFilename(selectedFile.name)) {
+        try {
+          showLoading(t.loading_process);
+          const text = await selectedFile.text();
+          const imported = parseGcodeText(text);
+          if (!imported.length) {
+            throw new Error(t.alert_import_error);
+          }
+          GCODE_CACHE = imported;
+          document.getElementById('gcode-preview').textContent = GCODE_CACHE.join('\n');
+          document.getElementById('gcode-lines').textContent = GCODE_CACHE.length;
+          const previewResponse = await fetch('/preview_gcode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commands: GCODE_CACHE })
+          });
+          const previewResult = await previewResponse.json();
+          if (previewResponse.ok && previewResult.preview_image) {
+            document.getElementById('preview-placeholder').style.display = 'none';
+            document.getElementById('preview-image').src = previewResult.preview_image;
+            document.getElementById('preview-image').style.display = 'block';
+          } else {
+            document.getElementById('preview-image').style.display = 'none';
+            const ph = document.getElementById('preview-placeholder');
+            ph.style.display = 'flex';
+            ph.textContent = `${t.status_imported}: ${GCODE_CACHE.length} lines`;
+          }
+          updateActionsAvailability();
+          setStatus(`${t.status_imported}: ${GCODE_CACHE.length} lines`, 'ok');
+          tabBtnGcode.onclick();
+          return;
+        } catch (err) {
+          setStatus(t.alert_import_error, 'error');
+          alert(t.alert_import_error);
+          return;
+        } finally {
+          hideLoading();
+        }
+      }
+
+      setStatus(t.status_processing);
+      showLoading(t.loading_process);
+
+      try {
+        const formData = new FormData(e.target);
+        const response = await fetch('/process', { method: 'POST', body: formData });
+        const result = await response.json();
+
+        if (!response.ok) {
+          setStatus(result.error || t.alert_process, 'error');
+          alert(result.error || t.alert_process);
+          return;
+        }
+
+        document.getElementById('preview-placeholder').style.display = 'none';
+        document.getElementById('preview-image').src = result.preview_image;
+        document.getElementById('preview-image').style.display = 'block';
+        document.getElementById('gcode-preview').textContent = result.gcode_lines.join('\n');
+        document.getElementById('gcode-lines').textContent = result.gcode_lines.length;
+        if (typeof result.resolution_x === 'number') setResolutionValue('x', result.resolution_x);
+        if (typeof result.resolution_y === 'number') setResolutionValue('y', result.resolution_y);
+        if (typeof result.width_mm === 'number') {
+          const widthInput = document.getElementById('width_mm');
+          if (widthInput) widthInput.value = String(Math.round(result.width_mm));
+        }
+        if (typeof result.offset_x_mm === 'number') {
+          document.getElementById('offset_x_mm').value = String(Math.round(result.offset_x_mm));
+          setVal('offset_x_mm_val', Math.round(result.offset_x_mm));
+        }
+        if (typeof result.offset_y_mm === 'number') {
+          document.getElementById('offset_y_mm').value = String(Math.round(result.offset_y_mm));
+          setVal('offset_y_mm_val', Math.round(result.offset_y_mm));
+        }
+
+        GCODE_CACHE = result.gcode_lines;
+        updateActionsAvailability();
+
+        const tags = [];
+        if (result.auto_optimized) tags.push(t.status_auto);
+        if (result.line_budget_applied) tags.push(`${t.status_budget}: ${result.original_line_count}->${result.line_count}`);
+        if (result.cuda_used) tags.push(t.status_cuda);
+        const suffix = tags.length ? ` (${tags.join(', ')})` : '';
+        setStatus(`${t.status_ok}${suffix}: ${result.gcode_lines.length} lines`, 'ok');
+      } catch (err) {
+        setStatus(t.alert_process, 'error');
+        alert(t.alert_process);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById('download-gcode-btn').addEventListener('click', () => {
+      const t = I18N[currentLang];
+      if (!GCODE_CACHE.length) {
+        alert(t.alert_download_first);
+        return;
+      }
+      const blob = new Blob([GCODE_CACHE.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      a.href = url;
+      a.download = `plott3r-${ts}.gcode`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('send-button').addEventListener('click', async () => {
+      const t = I18N[currentLang];
+      const ip = document.getElementById('ev3-ip').value.trim();
+
+      if (!ip) {
+        alert(t.alert_enter_ip);
+        return;
+      }
+      if (GCODE_CACHE.length === 0) {
+        alert(t.alert_process_first);
+        return;
+      }
+
+      setStatus(t.status_sending);
+      showLoading(t.loading_send);
+
+      try {
+        const response = await fetch('/send_to_ev3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commands: GCODE_CACHE, host: ip, port: 15614 })
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          setStatus(result.error || t.alert_send_error, 'error');
+          alert(result.error || t.alert_send_error);
+          return;
+        }
+
+        setStatus(t.alert_send_ok, 'ok');
+        alert(t.alert_send_ok);
+      } catch (err) {
+        setStatus(t.alert_send_error, 'error');
+        alert(t.alert_send_error);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    applyLang(detectDefaultLang());
+    toggleSettings();
+    syncArcControls();
+    updateManualCanvasGeometry();
+    refreshLanguageGlider();
+    refreshModeGlider();
+  </script>
+</body>
+</html>

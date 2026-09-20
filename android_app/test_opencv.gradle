@@ -1,3 +1,0 @@
-plugins { id 'java' }
-repositories { mavenCentral() }
-dependencies { implementation 'com.quickbirdstudios:opencv:4.5.3.0' }

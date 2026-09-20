@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#041226">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Plott3r Native"
+            android:textColor="#e8f1ff"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <ImageView
+            android:id="@+id/previewImage"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:scaleType="fitCenter"
+            android:background="#0a1d35"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/pickButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#2f7eff"
+            android:textColor="#ffffff"
+            android:text="1. Выбрать картинку"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2. Режим"
+            android:textColor="#e8f1ff"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/modeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            
+            <RadioButton
+                android:id="@+id/modeEdge"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textColor="#9db4d6"
+                android:checked="true"
+                android:text="Контуры (Edge)" />
+                
+            <RadioButton
+                android:id="@+id/modeHatch"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textColor="#9db4d6"
+                android:text="Заливка (Hatching)" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Настройки"
+            android:textColor="#e8f1ff"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Canny Low"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/cannyLowVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/cannyLow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Canny High"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/cannyHighVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/cannyHigh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="400"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Line Spacing Px"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/spacingPxVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/spacingPx"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Resolution X"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/resolutionXVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/resolutionX"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1800"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Resolution Y"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/resolutionYVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/resolutionY"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1800"
+            android:layout_marginBottom="12dp" />
+
+        <CheckBox
+            android:id="@+id/linkResolution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Link Resolution X/Y"
+            android:textColor="#9db4d6"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Offset X (mm) (-100..100 mapped 0..200)"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/offsetXVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/offsetX"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Offset Y (mm) (-100..100 mapped 0..200)"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/offsetYVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/offsetY"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Arc Aggressiveness"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/arcAggressivenessVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/arcAggressiveness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginBottom="12dp" />
+
+        <CheckBox
+            android:id="@+id/prioritizeArcs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Prioritize Arcs"
+            android:textColor="#9db4d6"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Target Lines (x100)"
+                android:textColor="#9db4d6" />
+            <TextView
+                android:id="@+id/targetLinesVal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="#2bc8d6" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/targetLines"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="350"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/processButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#28c76f"
+            android:textColor="#ffffff"
+            android:text="3. Обработать (Python)"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ожидание..."
+            android:textColor="#9db4d6"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            
+            <EditText
+                android:id="@+id/ev3IpInput"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="EV3 IP (192.168.1.100)"
+                android:textColorHint="#556b86"
+                android:textColor="#ffffff"
+                android:inputType="textUri" />
+                
+            <Button
+                android:id="@+id/sendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#2bc8d6"
+                android:textColor="#ffffff"
+                android:text="Отправить" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

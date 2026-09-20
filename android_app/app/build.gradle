@@ -1,0 +1,87 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'pth.windyx.plott3r.panel'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "pth.windyx.plott3r.panel"
+        minSdk 24
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+
+        python {
+            version "3.10"
+            pip {
+                options "--find-links", "src/main/python/wheels"
+                install "Flask==3.0.3"
+                install "Werkzeug"
+                install "opencv-contrib-python-headless==4.5.1.48"
+                install "Pillow"
+                install "numpy==1.26.2"
+                install "scikit-image==0.18.3"
+                install "svgelements"
+                install "matplotlib"
+            }
+        }
+    }
+
+    def localProperties = new Properties()
+    def localPropertiesFile = rootProject.file('local.properties')
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.withInputStream { instr ->
+            localProperties.load(instr)
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("release.jks")
+            storePassword localProperties.getProperty("RELEASE_STORE_PASSWORD", "windyx123")
+            keyAlias "windyx"
+            keyPassword localProperties.getProperty("RELEASE_KEY_PASSWORD", "windyx123")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    sourceSets {
+        main {
+            python.srcDir "src/main/python"
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.quickbirdstudios:opencv:4.5.3.0'
+}
